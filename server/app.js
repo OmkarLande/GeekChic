@@ -24,7 +24,7 @@ app.get("/", (req, res) => {
   });
 });
 app.use("/api/users", userRouter);
-app.use("/api/products", productRouter);
+app.use("/api/product", productRouter);
 app.use("/api/categories", categoryRouter);
 
 //listen

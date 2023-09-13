@@ -24,7 +24,7 @@ exports.register = async (req, res) => {
       });
     }
 
-    //samePassword? at frontend part
+    //Password== confirmPassword? at frontend part
 
     // hashPassword
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -73,30 +73,35 @@ exports.login = async (req, res) => {
     }
 
     // correctPassword?
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
+    if (await bcrypt.compare(password, user.password)) {
+      // JWT token
+      // const payload = {
+      //   email: user.email,
+      //   id: user._id,
+      // };
+
+      const token = jwt.sign({userId: user._id}, process.env.JWT_SECRET, {
+        expiresIn: "4h",
+      });
+
+      //createCookie
+      const options = {
+        expiresIn: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        httpOnly: true,
+      };
+      res.cookie("token", token, options).status(200).json({
+        success: true,
+        token,
+        user,
+        message: "Logged In Successfully",
+      });
+    } 
+    else {
       return res.status(400).json({
         success: false,
         message: "Invalid credentials",
       });
     }
-
-    // JWT token
-    const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: "4h",
-    });
-
-    //createCookie
-    const options = {
-      expiresIn: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-      httpOnly: true,
-    };
-    res.cookie("token", token, options).status(200).json({
-      success: true,
-      token,
-      user,
-      message: "Logged In Successfully",
-    });
   } catch (error) {
     console.error(error);
     res.status(500).json({
